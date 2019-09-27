@@ -4,6 +4,7 @@ type User struct {
 	First string
 }
 
+// Accessor is how to access saved users
 type Accessor interface {
 	Save(n int, u User)
 	Retrieve(n int) User
