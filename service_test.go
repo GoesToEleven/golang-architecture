@@ -3,6 +3,8 @@ package architecture
 import (
 	"fmt"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 type Db map[int]Person
@@ -16,17 +18,18 @@ func (m Db) Retrieve(n int) Person {
 }
 
 func TestPut(t *testing.T) {
-	mdb := Db{}
+	ctl := gomock.NewController(t)
+	acc := NewMockAccessor(ctl)
+
 	p := Person{
 		First: "James",
 	}
 
-	Put(mdb, 1, p)
+	acc.EXPECT().Save(1, p).MinTimes(1).MaxTimes(1)
 
-	got := mdb.Retrieve(1)
-	if got != p {
-		t.Fatalf("Want %v, got %v", p, got)
-	}
+	Put(acc, 1, p)
+
+	ctl.Finish()
 }
 
 func ExamplePut() {
