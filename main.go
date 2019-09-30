@@ -3,25 +3,34 @@ package main
 import (
 	"context"
 	"fmt"
-
-	"github.com/GoesToEleven/golang-architecture/session"
+	"runtime"
+	"time"
 )
 
-type key int
-
-var userKey key = 0
-
 func main() {
+
+	fmt.Println(runtime.NumGoroutine())
 	ctx := context.Background()
-	ctx = session.WithUserID(ctx, 1)
+	ctx, cancelF := context.WithCancel(ctx)
 
-	userID := session.GetUserID(ctx)
-	if userID == nil {
-		fmt.Println("Not Logged in!")
-		return
+	for i := 0; i < 100; i++ {
+		go func(n int) {
+			fmt.Println("running", n)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					fmt.Println("still working", n)
+					time.Sleep(100 * time.Millisecond)
+				}
+				fmt.Println("GOROUTINES RUNNING:", runtime.NumGoroutine())
+			}
+		}(i)
 	}
-	fmt.Println(*userID)
-
-	uId := ctx.Value(userKey)
-	fmt.Println(uId)
+	time.Sleep(5 * time.Second)
+	cancelF()
+	fmt.Println("Sleeping for 5 seconds")
+	time.Sleep(5 * time.Second)
+	fmt.Println("GOROUTINES RUNNING:", runtime.NumGoroutine())
 }
