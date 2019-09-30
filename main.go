@@ -3,48 +3,29 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"time"
 )
 
-func makeRequest(ctx context.Context, route string) (string, error) {
-	deadline, ok := ctx.Deadline()
-	if ok && time.Until(deadline) < 100*time.Millisecond {
-		return "", fmt.Errorf("Deadline too near")
-	}
+type key int
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, route, nil)
-	if err != nil {
-		return "", err
-	}
+var userKey key = 0
+var ipKey key = 1
+var isAdminKey key = 2
+var sessionKey key = 3
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+func foo(ctx context.Context) {
+	ctx = context.WithValue(ctx, "currentFunc", "foo")
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Bad status code: %d", resp.StatusCode)
-	}
 
-	bs, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(bs), nil
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-	defer cancel()
+	ctx := context.WithValue(context.Background(), userKey, 1)
+	// ctx := context.Background()
 
-	resp, err := makeRequest(ctx, "https://www.google.com")
-	if err != nil {
-		panic(err)
+	userID, ok := ctx.Value(userKey).(int)
+	if !ok {
+		fmt.Println("Not Logged in!")
+		return
 	}
-
-	fmt.Println(resp)
+	fmt.Println(userID)
 }
