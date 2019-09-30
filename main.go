@@ -31,6 +31,6 @@ func main() {
 	time.Sleep(5 * time.Second)
 	cancelF()
 	fmt.Println("Sleeping for 5 seconds")
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Second)
 	fmt.Println("GOROUTINES RUNNING:", runtime.NumGoroutine())
 }
