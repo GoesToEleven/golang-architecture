@@ -11,7 +11,12 @@ func main() {
 	f, err := os.Open("rumi.txt")
 
 	if errors.Is(err, os.ErrPermission) {
-		err = fmt.Errorf("you do not have permission to open the file: %w", err)
+		var pErr *os.PathError
+		if errors.As(err, &pErr) {
+			err = fmt.Errorf("you do not have permission to open the file %s: %w", pErr.Path, pErr)
+		} else {
+			err = fmt.Errorf("you do not have permission to open the file: %w", err)
+		}
 		log.Println(err)
 	} else if errors.Is(err, os.ErrNotExist) {
 		err = fmt.Errorf("the file does not exist: %w", err)
