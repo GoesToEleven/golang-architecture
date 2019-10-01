@@ -3,54 +3,36 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net"
+	"log"
+	"os"
 )
 
-type ErrFile struct {
-	Filename string
-	Base     error
-}
-
-func (e ErrFile) Error() string {
-	return fmt.Sprintf("File %s: %v", e.Filename, e.Base)
-}
-
-func (e ErrFile) Unwrap() error {
-	return e.Base
-}
-
-var ErrNotExist = fmt.Errorf("File does not exist")
-
-func openFile(filename string) (string, error) {
-	return "", ErrFile{
-		Filename: filename,
-		Base:     ErrNotExist,
-	}
-}
-
-func processFile(filename string) error {
-	_, err := openFile(filename)
-	if err != nil {
-		return fmt.Errorf("Error while opening file: %w", err)
-	}
-	// Do work on stuff
-	return nil
-}
-
 func main() {
-	err := processFile("test.txt")
-	if err != nil {
-		var fErr ErrFile
-		if errors.As(err, &fErr) {
-			fmt.Printf("Was unable to do something with file %s\n", fErr.Filename)
-		}
-		var netErr net.Error
-		if errors.As(err, &netErr) {
-			if netErr.Temporary() {
-				// Retry
-			}
-		}
-		// Some other error
-		fmt.Println(err)
+	f, err := os.Open("rumi.txt")
+
+	if errors.Is(err, os.ErrPermission) {
+		err = fmt.Errorf("you do not have permission to open the file: %w", err)
+		log.Println(err)
+	} else if errors.Is(err, os.ErrNotExist) {
+		err = fmt.Errorf("the file does not exist: %w", err)
+		log.Println(err)
+	} else if err != nil {
+		err = fmt.Errorf("file couldn't be opened: %w", err)
+		log.Println(err)
 	}
+/*
+	if err == os.ErrPermission {
+		err = fmt.Errorf("you do not have permission to open the file: %w", err)
+		log.Println(err)
+	} else if err == os.ErrNotExist {
+		err = fmt.Errorf("the file does not exist: %w", err)
+		log.Println(err)
+	} else if err != nil {
+		// panic(err)
+
+		err = fmt.Errorf("file couldn't be opened: %w", err)
+		log.Println(err)
+	}
+*/
+	defer f.Close()
 }
