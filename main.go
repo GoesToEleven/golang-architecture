@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-
-	"github.com/GoesToEleven/golang-architecture/session"
+	"time"
 )
 
 func main() {
 	ctx := context.Background()
-	ctx = session.SetUserID(ctx, 1)
-	ctx = session.SetAdminAccess(ctx, true)
-
-	uID := session.GetUserID(ctx)
-	isAdmin := session.GetAdmin(ctx)
-	fmt.Printf("User %d is an admin %t\n", uID, isAdmin)
+	ctx, cancelF := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancelF()
+	time.Sleep(50 * time.Millisecond)
+	select {
+	case <-ctx.Done():
+		fmt.Println("not finished")
+	default:
+		fmt.Println("finished")
+	}
 }
