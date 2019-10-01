@@ -1,36 +1,19 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"runtime"
-	"time"
 )
 
-func main() {
-	fmt.Printf("GOURTINES RUNNING %d\n", runtime.NumGoroutine())
-	ctx := context.Background()
-	ctx, cancelF := context.WithCancel(ctx)
-	defer cancelF()
+var ErrNotExist = fmt.Errorf("File does not exist")
+var ErrUserNotExist = errors.New("User does not exist")
 
-	for i := 0; i < 100; i++ {
-		go func(n int) {
-			fmt.Println("launching goroutine", n)
-			for {
-				select {
-				case <-ctx.Done():
-					runtime.Goexit()
-					// return
-				default:
-					fmt.Printf("goroutine %d is doing work\n", n)
-					time.Sleep(50 * time.Millisecond)
-				}
-			}
-		}(i)
+func main() {
+	err := ErrUserNotExist
+
+	if err == ErrUserNotExist {
+		fmt.Println("You need to register first!")
+	} else {
+		fmt.Println("Unknown error")
 	}
-	time.Sleep(time.Millisecond)
-	fmt.Printf("GOURTINES RUNNING AFTER ONE MILLISECOND!!! %d\n", runtime.NumGoroutine())
-	cancelF()
-	time.Sleep(100 * time.Millisecond)
-	fmt.Printf("GOURTINES RUNNING AFTER CANCELFUNC CALLED %d\n", runtime.NumGoroutine())
 }
