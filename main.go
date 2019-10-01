@@ -3,33 +3,49 @@ package main
 import (
 	"errors"
 	"fmt"
-	"time"
 )
 
-type ErrFileNotFound struct {
+type ErrFile struct {
 	Filename string
-	When     time.Time
+	Base     error
 }
 
-func (e ErrFileNotFound) Error() string {
-	return fmt.Sprintf("File %s was not found at %v", e.Filename, e.When)
+func (e ErrFile) Error() string {
+	return fmt.Sprintf("File %s: %v", e.Filename, e.Base)
 }
 
-func (e ErrFileNotFound) Is(other error) bool {
-	_, ok := other.(ErrFileNotFound)
-	return ok
+func (e ErrFile) Unwrap() error {
+	return e.Base
 }
 
 var ErrNotExist = fmt.Errorf("File does not exist")
-var ErrUserNotExist = errors.New("User does not exist")
+
+func openFile(filename string) (string, error) {
+	return "", ErrNotExist
+}
+
+func openFile2(filename string) (string, error) {
+	return "", ErrFile{
+		Filename: filename,
+		Base:     ErrNotExist,
+	}
+}
 
 func main() {
-	err := ErrFileNotFound{
-		Filename: "test.txt",
-		When:     time.Now(),
+	_, err := openFile("test.txt")
+	if err != nil {
+		wrappedErr := fmt.Errorf("Unable to open file %v: %w", "test.txt", err)
+		if errors.Is(wrappedErr, ErrNotExist) {
+			fmt.Println("This is an ErrNotExist")
+		}
+		fmt.Println(wrappedErr)
 	}
 
-	fmt.Println(errors.Is(err, ErrFileNotFound{}))
-
-	fmt.Println(err)
+	_, err = openFile2("test.txt")
+	if err != nil {
+		if errors.Is(err, ErrNotExist) {
+			fmt.Println("This is an ErrNotExist")
+		}
+		fmt.Println(err)
+	}
 }
