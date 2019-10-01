@@ -3,34 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
-	"runtime"
-	"time"
 )
 
 func main() {
-
-	fmt.Println(runtime.NumGoroutine())
-	ctx := context.Background()
-	ctx, cancelF := context.WithCancel(ctx)
-
-	for i := 0; i < 100; i++ {
-		go func(n int) {
-			fmt.Println("running", n)
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					fmt.Println("still working", n)
-					time.Sleep(100 * time.Millisecond)
-				}
-				fmt.Println("GOROUTINES RUNNING:", runtime.NumGoroutine())
-			}
-		}(i)
+	ctx := context.WithValue(context.Background(), "userID", 12345)
+	ctx = context.WithValue(ctx, 1, "admin")
+	if v := ctx.Value("userID"); v != nil {
+		fmt.Println(v)
+	} else {
+		fmt.Println("no value associated with that key")
 	}
-	time.Sleep(5 * time.Second)
-	cancelF()
-	fmt.Println("Sleeping for 5 seconds")
-	time.Sleep(time.Second)
-	fmt.Println("GOROUTINES RUNNING:", runtime.NumGoroutine())
+
+	if v := ctx.Value(1); v != nil {
+		fmt.Println(v)
+	} else {
+		fmt.Println("no value associated with that key")
+	}
+
+	if v := ctx.Value(2); v != nil {
+		fmt.Println(v)
+	} else {
+		fmt.Println("no value associated with that key")
+	}
 }
