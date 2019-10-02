@@ -1,35 +1,52 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
 
-type writeFile struct {
+type WriteFileError struct {
+	Op  string
+	Err error
+}
+
+func (w WriteFileError) Error() string {
+	return w.Err.Error()
+}
+
+func (w WriteFileError) Unwrap() error {
+	return w.Err
+}
+
+type WriteFile struct {
 	f   *os.File
 	err error
 }
 
-func newWriteFile(filename string) *writeFile {
+func NewWriteFile(filename string) *WriteFile {
 	f, err := os.Create(filename)
-	return &writeFile{
+	return &WriteFile{
 		f:   f,
 		err: err,
 	}
 }
 
-func (w *writeFile) WriteString(text string) {
+func (w *WriteFile) WriteString(text string) {
 	if w.err != nil {
 		return
 	}
 
 	_, err := io.WriteString(w.f, text)
 	if err != nil {
-		w.err = err
+		w.err = WriteFileError{
+			Op:  "WriteString",
+			Err: fmt.Errorf("Failed while writing a string: %w", err),
+		}
 	}
 }
 
-func (w *writeFile) Close() {
+func (w *WriteFile) Close() {
 	if w.err != nil {
 		return
 	}
@@ -40,12 +57,13 @@ func (w *writeFile) Close() {
 	}
 }
 
-func (w *writeFile) Err() error {
+// All errors returning from Err should be of type *WriteFileError
+func (w *WriteFile) Err() error {
 	return w.err
 }
 
 func main() {
-	f := newWriteFile("file.txt")
+	f := NewWriteFile("file.txt")
 	f.WriteString("Hello World")
 	f.WriteString("More Text!")
 	f.Close()
