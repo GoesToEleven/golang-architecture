@@ -26,9 +26,18 @@ type WriteFile struct {
 
 func NewWriteFile(filename string) *WriteFile {
 	f, err := os.Create(filename)
+	if err != nil {
+		return &WriteFile{
+			f: nil,
+			err: WriteFileError{
+				Op:  "NewWriteFile-Create",
+				Err: fmt.Errorf("Error while creating a file: %w", err),
+			},
+		}
+	}
 	return &WriteFile{
 		f:   f,
-		err: err,
+		err: nil,
 	}
 }
 
@@ -47,13 +56,16 @@ func (w *WriteFile) WriteString(text string) {
 }
 
 func (w *WriteFile) Close() {
-	if w.err != nil {
+	if w.f == nil {
 		return
 	}
 
 	err := w.f.Close()
 	if err != nil {
-		w.err = err
+		w.err = WriteFileError{
+			Op:  "Close",
+			Err: fmt.Errorf("Failed while closing file: %w", err),
+		}
 	}
 }
 
