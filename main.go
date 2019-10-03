@@ -15,23 +15,17 @@ func main() {
 		first: "Jenny",
 	}
 
-	fmt.Println(p1)
-
-	// go's example
-	a := Animal{
-		Name: "Gopher",
-		Age:  2,
+	p2 := person{
+		first: "James",
 	}
-	fmt.Println(a)
-}
 
-// Animal has a Name and an Age to represent an animal.
-type Animal struct {
-	Name string
-	Age  uint
-}
+	m := map[person]string{}
 
-// String makes Animal satisfy the Stringer interface.
-func (a Animal) String() string {
-	return fmt.Sprintf("%v (%d)", a.Name, a.Age)
+	m[p1] = "loves james bond"
+	m[p2] = "loves james bond also"
+
+	fmt.Println(m[p1])
+	fmt.Println(m[p2])
+	fmt.Println(p1==p2)
+	fmt.Println(p1==p1)
 }
