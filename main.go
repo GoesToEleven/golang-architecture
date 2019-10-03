@@ -12,8 +12,13 @@ func main() {
 	src := "kabir.txt"
 	dst := "second-file.txt"
 	err := copyFile(dst, src)
-	if errors.Is(err, os.ErrNotExist) {
-		fmt.Println("you need to provide the name \"kabir.txt\" of a valid file in your directory next to the executable")
+	var pe *os.PathError
+
+	// file didn't exist
+	if errors.As(err, &pe) && errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("you need to provide the name \"kabir.txt\" of a valid file in your directory next to the executable - %s\n", pe.Path)
+	} else if errors.As(err, &pe) {
+		fmt.Printf("error in copyFile: %s - OPERATION: %s - %s\n", pe.Path, pe.Op, err )
 	} else if err != nil {
 		log.Panicln("in main, calling copyFile returned an error:", err)
 	}
