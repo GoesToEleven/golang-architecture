@@ -2,28 +2,38 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"os"
 )
 
-type errorString string
-
-func (es errorString) Error() string {
-	return fmt.Sprintf("this is an error string with info about who what where when why how - %s", string(es))
-}
-
 func main() {
-	n, err := sum(2, 4)
+	src := "kabir.txt"
+	dst := "second-file.txt"
+	err := copyFile(dst, src)
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln("in main, calling copyFile returned an error:", err)
 	}
-	fmt.Println(n)
 }
 
-func sum(i, j int) (int, error) {
-	n := i + j
-	if n != i+j {
-		var sErr errorString = "the numbers didn't add up"
-		return 0, sErr
+func copyFile(dst, src string) error {
+	f1, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("couldn't open file in CopyFile: %w", err)
 	}
-	return n, nil
+	defer f1.Close()
+
+	f2, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("couldn't create a file in CopyFile: %w", err)
+	}
+	defer f2.Close()
+
+	n, err := io.Copy(f2, f1)
+	if err != nil {
+		return fmt.Errorf("couldn't copy a file in CopyFile: %w", err)
+	}
+	fmt.Println("just in development, nice to see bytes written:", n)
+
+	return nil
 }
