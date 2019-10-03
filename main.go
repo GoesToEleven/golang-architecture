@@ -3,45 +3,34 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
-	"log"
-	"os"
 )
 
 func main() {
-	src := "kabir.txt"
-	dst := "second-file.txt"
-	err := copyFile(dst, src)
-	var pe *os.PathError
+	fooErr := foo()
+	barErr := errors.Unwrap(fooErr)
+	mooErr := errors.Unwrap(barErr)
+	catErr := errors.Unwrap(mooErr)
+	baseErr := errors.Unwrap(catErr)
+	fmt.Printf("fooErr\t%s\n", fooErr)
+	fmt.Printf("barErr\t%s\n", barErr)
+	fmt.Printf("mooErr\t%s\n", mooErr)
+	fmt.Printf("catErr\t%s\n", catErr)
+	fmt.Printf("baseErr\t%s\n", baseErr)
 
-	// file didn't exist
-	if errors.As(err, &pe) && errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("you need to provide the name \"kabir.txt\" of a valid file in your directory next to the executable - %s\n", pe.Path)
-	} else if errors.As(err, &pe) {
-		fmt.Printf("error in copyFile: %s - OPERATION: %s - %s\n", pe.Path, pe.Op, err )
-	} else if err != nil {
-		log.Panicln("in main, calling copyFile returned an error:", err)
-	}
 }
 
-func copyFile(dst, src string) error {
-	f1, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("couldn't open file in CopyFile: %w", err)
-	}
-	defer f1.Close()
+func foo() error {
+	return fmt.Errorf("this error is from FOO - %w", bar())
+}
 
-	f2, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("couldn't create a file in CopyFile: %w", err)
-	}
-	defer f2.Close()
+func bar() error {
+	return fmt.Errorf("this error is from BAR - %w", moo())
+}
 
-	n, err := io.Copy(f2, f1)
-	if err != nil {
-		return fmt.Errorf("couldn't copy a file in CopyFile: %w", err)
-	}
-	fmt.Println("just in development, nice to see bytes written:", n)
+func moo() error {
+	return fmt.Errorf("this error is from MOO - %w", cat())
+}
 
-	return nil
+func cat() error {
+	return errors.New("this error is from CAT")
 }
